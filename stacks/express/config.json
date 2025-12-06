@@ -1,0 +1,40 @@
+{
+  "stackProfile": "express-single",
+  "paths": {
+    "handbook": "handbook/",
+    "openapi": "openapi/",
+    "stories": "docs/user-stories/",
+    "rules": "docs/business-rules/",
+    "specs": "docs/test-plans/validation-specs/",
+    "validators": "scripts/validation/",
+    "controllers": "src/routes/*.ts",
+    "dtos": "src/schemas/*.ts",
+    "services": "src/services/*.ts",
+    "middleware": "src/middleware/*.ts",
+    "models": "src/models/*.ts",
+    "endpointsJson": "architecture/ENDPOINTS.json"
+  },
+  "tdd": {
+    "enforcedPatterns": [
+      "src/routes/*.ts",
+      "src/services/*.ts",
+      "src/middleware/*.ts",
+      "src/utils/*.ts"
+    ],
+    "excludedPatterns": [
+      "*.schema.ts",
+      "*.model.ts",
+      "*.spec.ts",
+      "*.test.ts",
+      "**/index.ts",
+      "*.types.ts",
+      "*.constants.ts"
+    ],
+    "testPatterns": {
+      "unit": "tests/unit/{filename}.test.ts",
+      "integration": "tests/integration/{module}.test.ts",
+      "contract": "tests/contracts/{module}.contract.ts",
+      "e2e": "tests/e2e/*.e2e.ts"
+    }
+  }
+}

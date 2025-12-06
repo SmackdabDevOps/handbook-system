@@ -1,0 +1,49 @@
+{
+  "stackProfile": "express-nx",
+  "paths": {
+    "handbook": "docs/handbook/",
+    "openapi": "docs/openapi/",
+    "stories": "docs/user-stories/",
+    "rules": "docs/business-rules/",
+    "specs": "docs/test-plans/validation-specs/",
+    "validators": "tools/validation/",
+    "controllers": "apps/*/src/routes/*.ts",
+    "dtos": "libs/shared/dto/src/**/*.ts",
+    "services": "apps/*/src/services/*.ts",
+    "middleware": "libs/shared/middleware/src/**/*.ts",
+    "models": "libs/shared/models/src/**/*.ts",
+    "endpointsJson": "docs/architecture/ENDPOINTS.json"
+  },
+  "tdd": {
+    "enforcedPatterns": [
+      "apps/*/src/routes/*.ts",
+      "apps/*/src/services/*.ts",
+      "libs/*/src/**/*.ts"
+    ],
+    "excludedPatterns": [
+      "*.dto.ts",
+      "*.model.ts",
+      "*.spec.ts",
+      "*.test.ts",
+      "**/index.ts",
+      "*.types.ts"
+    ],
+    "testPatterns": {
+      "unit": "{app-or-lib}/src/**/__tests__/{filename}.spec.ts",
+      "integration": "apps/*/test/integration/*.spec.ts",
+      "contract": "apps/api/test/contracts/*.contract.ts",
+      "e2e": "apps/*/e2e/*.e2e.ts"
+    }
+  },
+  "nx": {
+    "affected": {
+      "useNxAffected": true,
+      "defaultBase": "main"
+    },
+    "targetMappings": {
+      "validation:gates": "nx run-many --target=validate --all",
+      "validation:quick": "nx affected --target=validate",
+      "test": "nx affected --target=test"
+    }
+  }
+}

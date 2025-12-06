@@ -1,0 +1,132 @@
+{
+  "description": "SDD Plugin hooks template for validation automation. NOTE: TDD enforcement (test-first, RED phase) is handled by .claude/hooks.json, not these PostToolUse hooks. IMPORTANT: This is a template file - placeholders will be replaced by the handbook CLI during handbook-init.",
+  "configReference": {
+    "note": "This template uses placeholder syntax that the CLI replaces during installation. All {{PATH_*}} placeholders are resolved from handbook configuration and replaced with actual paths from the project's .env or handbook config.",
+    "paths": {
+      "specs": "{{PATH_SPECS}} - UX validation spec files",
+      "openapi": "{{PATH_OPENAPI}} - OpenAPI contract definitions",
+      "stories": "{{PATH_STORIES}} - User story definitions",
+      "rules": "{{PATH_RULES}} - Business rule definitions",
+      "controllers": "{{PATH_CONTROLLERS}} - NestJS controller implementations",
+      "tests": "{{PATH_TESTS}} - Unit test files",
+      "progress": "{{PATH_PROGRESS}} - Phase progress tracking files",
+      "validators": "{{PATH_VALIDATORS}} - Validation script directory",
+      "scripts": "{{PATH_SCRIPTS}} - Shared script utilities directory"
+    }
+  },
+  "cliReplacement": {
+    "note": "During handbook-init, the CLI will replace all {{PATH_*}} placeholders with actual paths from config. Example replacements:",
+    "example": {
+      "before": "${config.paths.specs}/*.md",
+      "after": "docs/test-plans/validation-specs/*.md"
+    }
+  },
+  "hooks": [
+    {
+      "name": "tdd-coverage-check-on-test-edit",
+      "description": "Run TDD coverage checks when test files are modified",
+      "event": "PostToolUse",
+      "trigger": {
+        "tools": ["Write", "Edit"],
+        "pathPattern": "{{PATH_TESTS}}"
+      },
+      "action": {
+        "type": "prompt",
+        "prompt": "Test files were modified. Check TDD coverage status:\n\n```bash\nnpx ts-node {{PATH_VALIDATORS}}/check-unit-test-coverage.ts\n```\n\nReport the coverage percentage and whether it meets the 90% threshold."
+      }
+    },
+    {
+      "name": "tdd-red-phase-reminder",
+      "description": "Remind about RED phase when validation registry is updated",
+      "event": "PostToolUse",
+      "trigger": {
+        "tools": ["Write", "Edit"],
+        "pathPattern": "{{PATH_VALIDATORS}}/validation-registry.json"
+      },
+      "action": {
+        "type": "prompt",
+        "prompt": "Validation registry was updated. Check TDD stats:\n\n1. Read `stats.tdd` from the registry for coverage metrics\n2. Check `redPhaseVerified` for modules with verified RED phase\n3. If any coverage is below threshold (unit: 90%, contract: 100%), suggest running `npm run tdd:cycle`\n\nNote: `coverage_percent: -1` means N/A (no cross-module dependencies to test)."
+      }
+    },
+    {
+      "name": "validate-ux-specs-on-edit",
+      "description": "Automatically validate UX specs against contracts when specs are modified",
+      "event": "PostToolUse",
+      "trigger": {
+        "tools": [
+          "Write",
+          "Edit"
+        ],
+        "pathPattern": "{{PATH_SPECS}}/*.md"
+      },
+      "action": {
+        "type": "prompt",
+        "prompt": "A UX validation spec was just modified. Run validation to ensure it aligns with contracts:\n\n```bash\nnpx ts-node {{PATH_VALIDATORS}}/validate-ux-specs-against-contracts.ts\n```\n\nReport any mismatches found (undefined endpoints, unknown fields, etc.)."
+      }
+    },
+    {
+      "name": "validate-contracts-on-edit",
+      "description": "Automatically bundle and validate OpenAPI contracts when modified",
+      "event": "PostToolUse",
+      "trigger": {
+        "tools": [
+          "Write",
+          "Edit"
+        ],
+        "pathPattern": "{{PATH_OPENAPI}}/**/*.yaml"
+      },
+      "action": {
+        "type": "prompt",
+        "prompt": "OpenAPI contract files were modified. Regenerate bundle and validate endpoints:\n\n```bash\nnpm run openapi:bundle\nnpm run endpoints:validate\n```\n\nReport the endpoint validation results (complete/missing/unclassified counts)."
+      }
+    },
+    {
+      "name": "validate-story-rule-coverage-on-edit",
+      "description": "Check story-rule bidirectional linking when stories or rules are modified",
+      "event": "PostToolUse",
+      "trigger": {
+        "tools": [
+          "Write",
+          "Edit"
+        ],
+        "pathPattern": "{{PATH_STORIES}},{{PATH_RULES}}/*.md"
+      },
+      "action": {
+        "type": "prompt",
+        "prompt": "User stories or business rules were modified. Validate coverage:\n\n```bash\nnpx ts-node {{PATH_VALIDATORS}}/check-business-rules-coverage.ts\n```\n\nReport any stories missing rules, unreferenced rules, or undefined rule IDs."
+      }
+    },
+    {
+      "name": "validate-endpoints-on-controller-edit",
+      "description": "Validate endpoint implementation when controllers are modified",
+      "event": "PostToolUse",
+      "trigger": {
+        "tools": [
+          "Write",
+          "Edit"
+        ],
+        "pathPattern": "{{PATH_CONTROLLERS}}/*.ts"
+      },
+      "action": {
+        "type": "prompt",
+        "prompt": "Controller files were modified. Validate endpoint implementation:\n\n```bash\nnpm run endpoints:validate\n```\n\nReport any newly implemented endpoints or changes to endpoint status (missing → complete, etc.)."
+      }
+    },
+    {
+      "name": "suggest-phase-progression",
+      "description": "Suggest checking phase progression when all validations pass",
+      "event": "PostToolUse",
+      "trigger": {
+        "tools": [
+          "Write",
+          "Edit"
+        ],
+        "pathPattern": "{{PATH_PROGRESS}}/*-STATUS.md"
+      },
+      "action": {
+        "type": "prompt",
+        "prompt": "A progress file was updated. Check if the current phase is complete:\n\n1. Review the updated status file\n2. If all validations show PASS, suggest running `/sdd:next` to see if ready for phase progression\n3. If failures exist, suggest using the failure-recovery skill"
+      }
+    }
+  ]
+}

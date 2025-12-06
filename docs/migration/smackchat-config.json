@@ -1,0 +1,83 @@
+{
+  "$schema": "./node_modules/@smackdab/handbook-system/handbook.config.schema.json",
+  "version": "1.0.0",
+  "projectName": "SmackChat",
+  "stackProfile": "nestjs-single",
+  "paths": {
+    "handbook": "handbook/",
+    "openapi": "openapi/",
+    "stories": "docs/user-stories/",
+    "rules": "docs/business-rules/",
+    "specs": "docs/test-plans/validation-specs/",
+    "validators": "scripts/validation/",
+    "controllers": "src/modules/*/controllers/*.controller.ts",
+    "dtos": "src/modules/*/dto/*.dto.ts",
+    "services": "src/modules/*/services/*.service.ts",
+    "modules": "src/modules/*/*.module.ts",
+    "guards": "src/modules/*/guards/*.guard.ts",
+    "endpointsJson": "architecture/ENDPOINTS.json"
+  },
+  "commands": {
+    "validate:gates": "npm run validation:gates",
+    "validate:quick": "npm run validation:quick",
+    "openapi:bundle": "npm run openapi:bundle",
+    "endpoints:validate": "npm run endpoints:validate"
+  },
+  "phases": {
+    "enabled": [0, 1, 2, 3, 4, 5],
+    "customGates": {}
+  },
+  "tdd": {
+    "thresholds": {
+      "unit_coverage": 90,
+      "contract_coverage": 100,
+      "integration_coverage": -1
+    },
+    "hooks": {
+      "enforceRedPhase": true,
+      "blockCommitsWithoutValidation": true,
+      "version": "2.2.0"
+    },
+    "enforcedPatterns": [
+      "src/modules/*/services/*.service.ts",
+      "src/modules/*/controllers/*.controller.ts",
+      "src/modules/*/guards/*.guard.ts",
+      "src/modules/*/interceptors/*.interceptor.ts",
+      "src/modules/*/pipes/*.pipe.ts",
+      "src/modules/*/filters/*.filter.ts",
+      "src/modules/*/middleware/*.middleware.ts",
+      "src/common/**/*.ts"
+    ],
+    "excludedPatterns": [
+      "*.dto.ts",
+      "*.model.ts",
+      "*.module.ts",
+      "*.spec.ts",
+      "*.test.ts",
+      "**/index.ts",
+      "*.interface.ts",
+      "*.types.ts",
+      "*.constants.ts",
+      "scripts/**/*.ts",
+      "test/**/*.ts"
+    ]
+  },
+  "registry": {
+    "path": "scripts/validation/validation-registry.json",
+    "trackRedPhase": true,
+    "trackTDDStats": true
+  },
+  "features": [
+    "auth",
+    "onboarding",
+    "channels",
+    "chat-core",
+    "files",
+    "collaboration",
+    "admin",
+    "user-management",
+    "direct-messaging",
+    "multi-chat",
+    "advanced-features"
+  ]
+}

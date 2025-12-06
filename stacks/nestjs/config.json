@@ -1,0 +1,50 @@
+{
+  "stackProfile": "nestjs-single",
+  "paths": {
+    "handbook": "handbook/",
+    "openapi": "openapi/",
+    "stories": "docs/user-stories/",
+    "rules": "docs/business-rules/",
+    "specs": "docs/test-plans/validation-specs/",
+    "validators": "scripts/validation/",
+    "controllers": "src/modules/*/controllers/*.controller.ts",
+    "dtos": "src/modules/*/dto/*.dto.ts",
+    "services": "src/modules/*/services/*.service.ts",
+    "modules": "src/modules/*/*.module.ts",
+    "guards": "src/modules/*/guards/*.guard.ts",
+    "interceptors": "src/modules/*/interceptors/*.interceptor.ts",
+    "pipes": "src/modules/*/pipes/*.pipe.ts",
+    "filters": "src/modules/*/filters/*.filter.ts",
+    "middleware": "src/modules/*/middleware/*.middleware.ts",
+    "endpointsJson": "architecture/ENDPOINTS.json"
+  },
+  "tdd": {
+    "enforcedPatterns": [
+      "src/modules/*/services/*.service.ts",
+      "src/modules/*/controllers/*.controller.ts",
+      "src/modules/*/guards/*.guard.ts",
+      "src/modules/*/interceptors/*.interceptor.ts",
+      "src/modules/*/pipes/*.pipe.ts",
+      "src/modules/*/filters/*.filter.ts",
+      "src/modules/*/middleware/*.middleware.ts",
+      "src/common/**/*.ts"
+    ],
+    "excludedPatterns": [
+      "*.dto.ts",
+      "*.model.ts",
+      "*.module.ts",
+      "*.spec.ts",
+      "*.test.ts",
+      "**/index.ts",
+      "*.interface.ts",
+      "*.types.ts",
+      "*.constants.ts"
+    ],
+    "testPatterns": {
+      "unit": "{dir}/__tests__/{filename}.spec.ts",
+      "integration": "test/integration/{module}/*.spec.ts",
+      "contract": "test/contracts/{module}/*.contract.ts",
+      "e2e": "test/e2e/*.e2e-spec.ts"
+    }
+  }
+}

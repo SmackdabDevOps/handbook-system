@@ -1,0 +1,105 @@
+{
+  "_comment": "TEMPLATE FILE: This hooks.json template contains ${config.*} placeholders that must be resolved by the handbook-init CLI tool. DO NOT use this file directly - it will not work until placeholders are replaced with actual values from handbook.config.json",
+  "description": "Chain of Trust AGGRESSIVE enforcement - blocks commits until validation passes",
+  "documentation": {
+    "version": "2.2.0",
+    "lastUpdated": "2025-12-06",
+    "changelog": [
+      {
+        "version": "2.2.0",
+        "date": "2025-12-06",
+        "changes": [
+          "Changed RED phase enforcement from WARNING to BLOCKING",
+          "Hooks now DENY writes when RED phase not verified (was approve with warning)",
+          "Full TDD sequence is now strictly enforced: tests must exist AND fail first"
+        ],
+        "rationale": "v2.1.0 warned about missing RED phase but allowed writes to proceed. This let agents bypass the TDD sequence by ignoring warnings. Now implementation writes are blocked until RED phase is verified."
+      },
+      {
+        "version": "2.1.0",
+        "date": "2025-12-06",
+        "changes": [
+          "Added RED phase verification check for new modules",
+          "Hooks now check if RED phase was run before implementation",
+          "Warning issued if tests exist but RED phase not verified in registry",
+          "Enforces TDD sequence: RED (tests fail) -> GREEN (tests pass) -> REFACTOR"
+        ],
+        "rationale": "v2.0.0 checked for test FILE existence but didn't verify TDD sequence. An agent could write implementation before tests were run, bypassing RED phase. Now we check the validation registry for RED phase verification."
+      },
+      {
+        "version": "2.0.0",
+        "date": "2025-12-06",
+        "changes": [
+          "EXPANDED TDD enforcement beyond services/controllers",
+          "Added coverage for: guards, interceptors, pipes, filters, middleware",
+          "Added coverage for: src/common/**/*.ts utility files",
+          "Added explicit EXCLUSIONS for: DTOs, models, index files, spec files",
+          "Added comprehensive documentation explaining each rule"
+        ],
+        "rationale": "Original hooks only checked services/*.service.ts and controllers/*.controller.ts. An agent could create utility files, guards, or common modules without tests and we wouldn't catch it until coverage gate failed at commit time."
+      },
+      {
+        "version": "1.0.0",
+        "date": "2025-12-06",
+        "changes": ["Initial TDD enforcement for services and controllers"]
+      }
+    ],
+    "coverage": {
+      "enforced": [
+        "${config.tdd.enforcedPatterns.services} - Unit tests required in __tests__/",
+        "${config.tdd.enforcedPatterns.controllers} - Integration tests required",
+        "${config.tdd.enforcedPatterns.guards} - Unit tests required in __tests__/",
+        "${config.tdd.enforcedPatterns.interceptors} - Unit tests required in __tests__/",
+        "${config.tdd.enforcedPatterns.pipes} - Unit tests required in __tests__/",
+        "${config.tdd.enforcedPatterns.filters} - Unit tests required in __tests__/",
+        "${config.tdd.enforcedPatterns.middleware} - Unit tests required in __tests__/",
+        "${config.tdd.enforcedPatterns.common} (excluding index.ts) - Unit tests required in __tests__/"
+      ],
+      "excluded": [
+        "*.dto.ts - Tested via contract tests in test/contracts/",
+        "*.model.ts - Data structures, no logic to test",
+        "*.module.ts - NestJS wiring, tested implicitly via integration tests",
+        "*.spec.ts / *.test.ts - Test files themselves",
+        "index.ts - Barrel/re-export files, no logic",
+        "*.interface.ts / *.types.ts - Type definitions, no runtime code",
+        "*.constants.ts - Static values, no logic to test",
+        "${config.paths.validators}/**/*.ts - Meta-tooling exempt (validation scripts test themselves by running)",
+        "test/**/*.ts - Test infrastructure"
+      ],
+      "legacyExemption": "Files that already exist in git are allowed with a WARNING. New files are BLOCKED until tests exist. This supports gradual remediation without blocking work on existing code."
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Analyzing command: $TOOL_INPUT.command\n\nIF this command starts with 'git commit' (not git status, git diff, git log, git add, git stash):\n1. Run targeted commit guard: npx ts-node ${config.paths.validators}/commit-guard.ts\n2. If commit-guard exits with code 1 (failure), respond with 'deny' and include the blockers it printed\n3. If commit-guard exits with code 0 (success), respond with 'approve'\n\nIF this command starts with 'git push':\n1. Execute full gate check: npx ts-node ${config.paths.validators}/check-all-phase-gates.ts\n2. If any phase gate fails, respond with 'deny' and include the blockers\n3. If all gates pass, respond with 'approve'\n\nFor ALL other commands (git status, git diff, git log, git add, npm, etc.): respond 'approve' immediately."
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "=== TDD COMPLIANCE CHECK (v2.2.0 - 2025-12-06) ===\n\nCheck if this file write requires tests AND RED phase verification. File path: $TOOL_INPUT.file_path\n\n--- STEP 1: CHECK EXCLUSIONS (approve immediately if matched) ---\n\nIF the file path matches ANY of these patterns, respond 'approve' immediately:\n- *.dto.ts (DTOs tested via contract tests)\n- *.model.ts (data structures, no logic)\n- *.module.ts (NestJS wiring, tested via integration)\n- *.spec.ts or *.test.ts (test files themselves)\n- */index.ts (barrel/re-export files)\n- *.interface.ts or *.types.ts (type definitions)\n- *.constants.ts (static values)\n- ${config.paths.validators}/**/*.ts (meta-tooling exempt)\n- test/**/*.ts (test infrastructure)\n- docs/**/* (documentation)\n- *.md, *.json, *.yaml, *.yml, *.html, *.css, *.js (non-TS files)\n\n--- STEP 2: CHECK ENFORCED PATTERNS ---\n\n=== SERVICES ===\nIF path matches '${config.tdd.enforcedPatterns.services}':\n1. Extract module name from path (e.g., 'bookmarks' from '${config.tdd.enforcedPatterns.services.replace('*', 'bookmarks').replace('*.service.ts', 'bookmarks.service.ts')}')\n2. Check if file is NEW: `git log --oneline -1 {file_path}` returns error = NEW\n3. If NEW:\n   a. Check if test file exists at `{dir}/__tests__/{filename}.spec.ts`\n      - If NO test: respond 'deny' with 'TDD VIOLATION: Write test first at {dir}/__tests__/{filename}.spec.ts'\n   b. Check if RED phase was verified: `cat ${config.registry.path} | grep -q '\"red-phase-{module}\"' || grep -q 'redPhaseVerified.*{module}'`\n      - If RED phase NOT verified: respond 'deny' with 'TDD VIOLATION: RED phase not verified. Run first: npx ts-node ${config.paths.validators}/check-red-phase.ts {module}'\n      - If test exists AND RED phase verified: respond 'approve'\n4. If EXISTS in git: respond 'approve' with warning 'TDD WARNING: Legacy service without tests - consider adding tests'\n\n=== CONTROLLERS ===\nIF path matches '${config.tdd.enforcedPatterns.controllers}':\n1. Extract module name from path\n2. Check if file is NEW\n3. If NEW:\n   a. Check if integration test exists in `test/integration/` for this module\n      - If NO test: respond 'deny' with 'TDD VIOLATION: Write integration test first in test/integration/'\n   b. Check RED phase verification (same as services)\n      - If NOT verified: respond 'deny' with 'TDD VIOLATION: RED phase not verified. Run: npx ts-node ${config.paths.validators}/check-red-phase.ts {module}'\n4. If EXISTS in git: respond 'approve' (legacy - remediation wave)\n\n=== GUARDS, INTERCEPTORS, PIPES, FILTERS, MIDDLEWARE ===\nIF path matches any of:\n- '${config.tdd.enforcedPatterns.guards}'\n- '${config.tdd.enforcedPatterns.interceptors}'\n- '${config.tdd.enforcedPatterns.pipes}'\n- '${config.tdd.enforcedPatterns.filters}'\n- '${config.tdd.enforcedPatterns.middleware}'\n\n1. Extract module name from path\n2. Check if file is NEW\n3. If NEW:\n   a. Check if test file exists at `{dir}/__tests__/{filename}.spec.ts`\n      - If NO test: respond 'deny' with 'TDD VIOLATION: Write test first'\n   b. Check RED phase verification\n      - If NOT verified: respond 'deny' with 'TDD VIOLATION: RED phase not verified. Run check-red-phase.ts first'\n4. If EXISTS in git: respond 'approve' with warning 'TDD WARNING: Legacy code without tests'\n\n=== COMMON UTILITIES ===\nIF path matches '${config.tdd.enforcedPatterns.common}' (but NOT index.ts, *.interface.ts, *.types.ts, *.constants.ts):\n1. Check if file is NEW\n2. If NEW: Check if test file exists at similar path with .spec.ts\n   - For ${config.tdd.enforcedPatterns.common.replace('**/*.ts', 'utils/foo.ts')}, check ${config.tdd.enforcedPatterns.common.replace('**/*.ts', 'utils/__tests__/foo.spec.ts')}\n   - If NO test: respond 'deny' with 'TDD VIOLATION: Write test first'\n   - If test exists: respond 'approve' (no RED phase check for common utilities)\n3. If EXISTS in git: respond 'approve' with warning 'TDD WARNING: Legacy utility without tests'\n\n--- STEP 3: DEFAULT ---\n\nFor ALL other file paths not matching above patterns: respond 'approve' immediately.\n\n--- RATIONALE ---\nTDD enforcement is STRICT: 1) Tests must EXIST, 2) Tests must FAIL first (RED phase verified), 3) Only then can implementation proceed. RED phase verification is now BLOCKING, not just a warning. Legacy code gets warnings but new code is strictly enforced."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Analyze the completed command: $TOOL_INPUT.command with result: $TOOL_OUTPUT\n\nIF this was a validation command (starts with 'npm run validate', 'npm run validation', 'npx ts-node ${config.paths.validators}', or 'npx ts-node scripts/check'):\n1. Parse the output for pass/fail status\n2. If validation FAILED: Summarize the specific blockers the agent must fix before committing\n3. If validation PASSED: Note the improvement briefly\n4. ALWAYS after validation completes: Run 'npm run dashboard:update' to refresh PM Dashboard data\n\nFor other commands: return silently without adding commentary."
+          }
+        ]
+      }
+    ]
+  }
+}

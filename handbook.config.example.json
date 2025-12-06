@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "projectName": "smackchat-backend",
+  "stackProfile": "nestjs-single",
+  "paths": {
+    "handbook": "handbook/",
+    "openapi": "openapi/",
+    "stories": "docs/user-stories/",
+    "rules": "docs/business-rules/",
+    "specs": "docs/test-plans/validation-specs/",
+    "validators": "scripts/validation/",
+    "controllers": "src/modules/*/controllers/*.controller.ts",
+    "dtos": "src/modules/*/dto/*.dto.ts",
+    "services": "src/modules/*/services/*.service.ts",
+    "modules": "src/modules/*.module.ts",
+    "endpointsJson": "architecture/ENDPOINTS.json"
+  },
+  "commands": {
+    "validate:gates": "npm run validation:gates",
+    "validate:quick": "npm run validation:quick",
+    "openapi:bundle": "npm run openapi:bundle",
+    "endpoints:validate": "npm run endpoints:validate"
+  },
+  "phases": {
+    "enabled": [0, 1, 2, 3, 4, 5],
+    "customGates": {}
+  },
+  "tdd": {
+    "thresholds": {
+      "unit_coverage": 90,
+      "contract_coverage": 100,
+      "integration_coverage": 100
+    },
+    "hooks": {
+      "enforceRedPhase": true,
+      "blockCommitsWithoutValidation": true,
+      "version": "2.2.0"
+    },
+    "enforcedPatterns": [
+      "src/modules/*/services/*.service.ts",
+      "src/modules/*/controllers/*.controller.ts"
+    ],
+    "excludedPatterns": [
+      "src/database/migrations/*.ts",
+      "src/common/**/*.ts",
+      "test/**/*.ts"
+    ]
+  },
+  "registry": {
+    "path": "scripts/validation/validation-registry.json",
+    "trackRedPhase": true,
+    "trackTDDStats": true
+  },
+  "features": [
+    "auth",
+    "channels",
+    "messages",
+    "notifications",
+    "translations",
+    "workspace-management"
+  ]
+}

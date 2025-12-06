@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Handbook System Configuration",
+  "description": "Configuration for @smackdab/handbook-system",
+  "type": "object",
+  "required": ["version", "projectName", "stackProfile"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Config schema version"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Name of the project using the handbook"
+    },
+    "stackProfile": {
+      "type": "string",
+      "enum": ["nestjs-single", "express-single", "express-nx", "generic"],
+      "description": "Technology stack profile"
+    },
+    "paths": {
+      "type": "object",
+      "properties": {
+        "handbook": { "type": "string", "default": "handbook/" },
+        "openapi": { "type": "string", "default": "openapi/" },
+        "stories": { "type": "string", "default": "docs/user-stories/" },
+        "rules": { "type": "string", "default": "docs/business-rules/" },
+        "specs": { "type": "string", "default": "docs/test-plans/validation-specs/" },
+        "validators": { "type": "string", "default": "scripts/validation/" },
+        "controllers": { "type": "string", "description": "Glob pattern for controller files" },
+        "dtos": { "type": "string", "description": "Glob pattern for DTO files" },
+        "services": { "type": "string", "description": "Glob pattern for service files" },
+        "modules": { "type": "string", "description": "Glob pattern for module files" },
+        "endpointsJson": { "type": "string", "default": "architecture/ENDPOINTS.json" }
+      }
+    },
+    "commands": {
+      "type": "object",
+      "properties": {
+        "validate:gates": { "type": "string", "default": "npm run validation:gates" },
+        "validate:quick": { "type": "string", "default": "npm run validation:quick" },
+        "openapi:bundle": { "type": "string", "default": "npm run openapi:bundle" },
+        "endpoints:validate": { "type": "string", "default": "npm run endpoints:validate" }
+      }
+    },
+    "phases": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0, "maximum": 6 },
+          "default": [0, 1, 2, 3, 4, 5]
+        },
+        "customGates": { "type": "object" }
+      }
+    },
+    "tdd": {
+      "type": "object",
+      "properties": {
+        "thresholds": {
+          "type": "object",
+          "properties": {
+            "unit_coverage": { "type": "integer", "minimum": 0, "maximum": 100, "default": 90 },
+            "contract_coverage": { "type": "integer", "minimum": 0, "maximum": 100, "default": 100 },
+            "integration_coverage": { "type": "integer", "minimum": -1, "maximum": 100, "default": 100 }
+          }
+        },
+        "hooks": {
+          "type": "object",
+          "properties": {
+            "enforceRedPhase": { "type": "boolean", "default": true },
+            "blockCommitsWithoutValidation": { "type": "boolean", "default": true },
+            "version": { "type": "string", "default": "2.2.0" }
+          }
+        },
+        "enforcedPatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns for files requiring TDD"
+        },
+        "excludedPatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns for files excluded from TDD"
+        }
+      }
+    },
+    "registry": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "default": "scripts/validation/validation-registry.json" },
+        "trackRedPhase": { "type": "boolean", "default": true },
+        "trackTDDStats": { "type": "boolean", "default": true }
+      }
+    },
+    "features": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of feature names for validation"
+    }
+  }
+}
