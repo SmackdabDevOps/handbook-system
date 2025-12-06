@@ -39,6 +39,7 @@ export interface HandbookConfig {
       blockCommitsWithoutValidation: boolean;
       version: string;
     };
+    staleThresholdHours?: number;
     enforcedPatterns: string[];
     excludedPatterns: string[];
   };

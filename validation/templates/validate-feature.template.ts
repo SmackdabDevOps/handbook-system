@@ -105,7 +105,7 @@ async function recordTest(name: string, testFn: () => Promise<void>): Promise<Te
     await testFn();
     log(`✓ ${name} PASSED`);
     return { name, passed: true };
-  } catch (error) {
+  } catch (error: any) {
     log(`✗ ${name} FAILED: ${error.message}`);
     return { name, passed: false, error: error.message };
   }
@@ -268,7 +268,7 @@ async function validateFeature(): Promise<boolean> {
   if (!passed) {
     log('\n❌ VALIDATION FAILED');
     log('\nFailed tests:');
-    testResults.filter(t => !t.passed).forEach(t => {
+    testResults.filter((t: TestResult) => !t.passed).forEach((t: TestResult) => {
       log(`  - ${t.name}: ${t.error}`);
     });
   } else {
@@ -302,7 +302,7 @@ if (require.main === module) {
     .then(passed => {
       process.exit(passed ? 0 : 1);
     })
-    .catch(error => {
+    .catch((error: any) => {
       console.error('Validation error:', error);
       process.exit(1);
     });

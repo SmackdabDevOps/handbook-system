@@ -63,7 +63,7 @@ function runCommand(command: string, description: string): boolean {
     });
     console.log(`  ✓ ${description} passed`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.log(`  ✗ ${description} failed`);
     return false;
   }
@@ -98,7 +98,7 @@ function getUnitCoverage(): number {
     console.log(`  Average: ${avgCoverage.toFixed(2)}%`);
 
     return avgCoverage;
-  } catch (error) {
+  } catch (error: any) {
     console.log(`  ✗ Failed to parse coverage: ${error.message}`);
     return 0;
   }
@@ -132,7 +132,7 @@ function getContractCoverage(): { coverage: number; details: string } {
       coverage,
       details: `${coveredEndpoints}/${totalEndpoints} endpoints have contract tests`,
     };
-  } catch (error) {
+  } catch (error: any) {
     return { coverage: 0, details: `Error: ${error.message}` };
   }
 }
@@ -215,7 +215,7 @@ async function validatePhase2(): Promise<boolean> {
 
   if (!passed) {
     console.log('\n❌ Phase 2 FAILED');
-    results.issues.forEach(issue => {
+    results.issues.forEach((issue: string) => {
       console.log(`  - ${issue}`);
     });
   } else {
@@ -253,7 +253,7 @@ if (require.main === module) {
     .then(passed => {
       process.exit(passed ? 0 : 1);
     })
-    .catch(error => {
+    .catch((error: any) => {
       console.error('Validation error:', error);
       process.exit(1);
     });

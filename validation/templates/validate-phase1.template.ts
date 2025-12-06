@@ -85,7 +85,7 @@ async function validatePhase1(): Promise<boolean> {
           const content = fs.readFileSync(file, 'utf-8');
           yaml.load(content);
           console.log(`  ✓ ${path.basename(file)}`);
-        } catch (error) {
+        } catch (error: any) {
           console.log(`  ✗ ${path.basename(file)} - Invalid YAML: ${error.message}`);
           results.openapiValid = false;
           invalidCount++;
@@ -112,7 +112,7 @@ async function validatePhase1(): Promise<boolean> {
   if (dtoFiles.length === 0) {
     results.misalignments.push('No DTOs found - expected at least 1');
   } else {
-    dtoFiles.slice(0, 5).forEach(file => {
+    dtoFiles.slice(0, 5).forEach((file: string) => {
       console.log(`  ✓ ${path.relative(PROJECT_ROOT, file)}`);
     });
     if (dtoFiles.length > 5) {
@@ -130,7 +130,7 @@ async function validatePhase1(): Promise<boolean> {
   if (controllerFiles.length === 0) {
     results.misalignments.push('No controllers found - expected at least 1');
   } else {
-    controllerFiles.slice(0, 5).forEach(file => {
+    controllerFiles.slice(0, 5).forEach((file: string) => {
       console.log(`  ✓ ${path.relative(PROJECT_ROOT, file)}`);
     });
     if (controllerFiles.length > 5) {
@@ -161,7 +161,7 @@ async function validatePhase1(): Promise<boolean> {
         console.log('  ✗ ENDPOINTS.json has unexpected format');
         results.misalignments.push('ENDPOINTS.json format invalid');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(`  ✗ Failed to parse ENDPOINTS.json: ${error.message}`);
       results.misalignments.push('ENDPOINTS.json parse error');
     }
@@ -184,7 +184,7 @@ async function validatePhase1(): Promise<boolean> {
 
   if (!passed) {
     console.log('\n❌ Phase 1 FAILED');
-    results.misalignments.forEach(issue => {
+    results.misalignments.forEach((issue: string) => {
       console.log(`  - ${issue}`);
     });
   } else {
@@ -223,7 +223,7 @@ if (require.main === module) {
     .then(passed => {
       process.exit(passed ? 0 : 1);
     })
-    .catch(error => {
+    .catch((error: any) => {
       console.error('Validation error:', error);
       process.exit(1);
     });

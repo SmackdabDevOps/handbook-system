@@ -106,7 +106,7 @@ async function validatePhase0(): Promise<boolean> {
     console.log(`  ✗ No contract files found at ${config.paths.openapi}/paths/*.yaml`);
     results.contracts.missing.push('openapi-contracts');
   } else {
-    contractFiles.forEach(file => {
+    contractFiles.forEach((file: string) => {
       console.log(`  ✓ ${path.basename(file)}`);
     });
   }
@@ -165,7 +165,7 @@ if (require.main === module) {
     .then(passed => {
       process.exit(passed ? 0 : 1);
     })
-    .catch(error => {
+    .catch((error: any) => {
       console.error('Validation error:', error);
       process.exit(1);
     });
