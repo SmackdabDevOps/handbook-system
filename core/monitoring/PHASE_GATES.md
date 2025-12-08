@@ -93,6 +93,62 @@ Phase 4 is BLOCKED until all required validators pass.
 
 ## Current Phase Gates
 
+### Phase 0: Project Structure & Required Documentation
+
+**Gate:** `phase0`
+
+**Required validators:**
+- `directory-structure` - Validates correct folder layout
+- `required-docs` - Validates minimum required documentation exists
+
+**Required pass rate:** 100%
+
+**Why Phase 0 exists:**
+Phase 0 ensures the project structure is correct before ANY development work begins. This prevents:
+- Documentation scattered at project root
+- Missing required directories
+- Inconsistent project layouts across repositories
+- Starting work without proper artifact locations
+
+**Completion criteria:**
+- Run: `npm run validate:phase0`
+- Ensure: No forbidden documentation files at project root
+- Ensure: All required directories exist (`docs/user-stories/`, `docs/business-rules/`, `docs/test-plans/validation-specs/`, `handbook/`, `src/`, `specs/` or `openapi/`, `scripts/validation/`)
+- Ensure: At least one user story and one business rule exist
+- Ensure: OpenAPI spec exists
+- Ensure: Handbook is installed
+
+**Evidence files:**
+- `docs/user-stories/*.md` - Must have at least one
+- `docs/business-rules/BR-*.md` - Must have at least one
+- `specs/*.yaml` or `openapi/paths/*.yaml` - OpenAPI specification
+- `handbook/SYSTEM_DELIVERY_PLAYBOOK.md` - Handbook playbook
+
+**Commands to run:**
+```bash
+# Run Phase 0 gate check
+npm run validate:phase0
+
+# Run individual checks
+npm run validate:dirs           # Directory structure only
+npm run validate:required-docs  # Required documentation only
+```
+
+**CRITICAL: Phase 0 MUST pass before Phase 1 can begin.**
+
+Files that are FORBIDDEN at project root:
+- `FEATURES.md` → move to `docs/product/`
+- `STATUS.md` → move to `docs/progress/`
+- `IMPLEMENTATION*.md` → move to `docs/plans/`
+- `*SPECIFICATION*.md` → move to `docs/product/`
+- `*ANALYSIS*.md` → move to `docs/research/`
+
+Files that are ALLOWED at project root:
+- `README.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `CHANGELOG.md`
+- Developer quick-reference docs (e.g., `API_FIRST_WORKFLOW.md`)
+
+---
+
 ### Phase 1: User Stories & Business Rules
 
 **Gate:** `phase1`

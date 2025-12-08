@@ -8,10 +8,13 @@ The handbook-system provides these templates to help projects generate their own
 
 | Template | Purpose | When to Use |
 |----------|---------|-------------|
-| `validate-phase0.template.ts` | Requirements & Contracts existence | Validate user stories, business rules, and OpenAPI specs exist |
-| `validate-phase1.template.ts` | Contract-Code alignment | Validate OpenAPI specs align with DTOs and Controllers |
-| `validate-phase2.template.ts` | Test coverage | Validate unit, contract, and integration test coverage |
-| `validate-feature.template.ts` | Feature behavior testing | Validate actual API behavior against UX specs |
+| `validate-directory-structure.template.ts` | Directory structure validation | Phase 0: Validate project follows handbook directory standards |
+| `validate-required-docs.template.ts` | Required documentation | Phase 0: Validate minimum required docs exist |
+| `validate-phase0-gate.template.ts` | Combined Phase 0 gate | Phase 0: Run all Phase 0 checks as single gate |
+| `validate-phase0.template.ts` | Feature-based requirements | Phase 0 (legacy): Validate user stories, business rules by feature |
+| `validate-phase1.template.ts` | Contract-Code alignment | Phase 1: Validate OpenAPI specs align with DTOs and Controllers |
+| `validate-phase2.template.ts` | Test coverage | Phase 2: Validate unit, contract, and integration test coverage |
+| `validate-feature.template.ts` | Feature behavior testing | Phase 4: Validate actual API behavior against UX specs |
 
 ## Quick Start
 
@@ -50,7 +53,92 @@ npx ts-node scripts/validation/validate-phase0.ts
 
 ## Template Details
 
-### Phase 0: Requirements & Contracts
+### Phase 0: Directory Structure (NEW)
+
+**File:** `validate-directory-structure.template.ts`
+
+**Validates:**
+- Required directories exist (`docs/user-stories/`, `docs/business-rules/`, etc.)
+- No forbidden documentation files at project root
+- Handbook directory exists
+
+**Customization needed:**
+```typescript
+// CUSTOMIZE: Add stack-specific OpenAPI location
+const REQUIRED_DIRECTORIES = [
+  { path: 'specs', description: 'OpenAPI specs directory' },        // Single-Service
+  // { path: 'openapi', description: 'OpenAPI specs directory' },   // Nx Backend
+];
+
+// CUSTOMIZE: Add project-specific allowed root files
+const ALLOWED_ROOT_MD_FILES = [
+  'README.md',
+  'CLAUDE.md',
+  'API_FIRST_WORKFLOW.md',  // Add project-specific allowed files
+];
+```
+
+**Expected structure:**
+```
+project/
+├── docs/
+│   ├── user-stories/      # Required
+│   ├── business-rules/    # Required
+│   ├── test-plans/
+│   │   └── validation-specs/  # Required
+│   ├── product/           # For FEATURES.md, SPECIFICATION.md
+│   ├── architecture/      # For DATABASE.md, etc.
+│   ├── plans/             # For IMPLEMENTATION_PLAN.md
+│   ├── progress/          # For STATUS.md
+│   └── research/          # For *_ANALYSIS.md
+├── handbook/              # Required
+├── src/                   # Required
+└── specs/ or openapi/     # Required (stack-dependent)
+```
+
+---
+
+### Phase 0: Required Documentation (NEW)
+
+**File:** `validate-required-docs.template.ts`
+
+**Validates:**
+- At least one user story exists
+- At least one business rule exists
+- OpenAPI spec exists
+- Handbook playbook exists
+
+**Customization needed:**
+```typescript
+// CUSTOMIZE: Choose OpenAPI location based on stack
+const REQUIRED_DOCS = [
+  {
+    name: 'OpenAPI Spec',
+    pattern: 'specs/*.yaml',       // Single-Service (NestJS)
+    // pattern: 'openapi/paths/*.yaml', // Nx Backend
+    minCount: 1,
+  },
+];
+```
+
+---
+
+### Phase 0: Combined Gate (NEW)
+
+**File:** `validate-phase0-gate.template.ts`
+
+**Purpose:** Runs both directory structure and required docs validation as a single gate check.
+
+**Usage:**
+```bash
+npm run validate:phase0
+```
+
+**Note:** Phase 0 MUST pass before Phase 1 can begin.
+
+---
+
+### Phase 0: Requirements & Contracts (Legacy)
 
 **File:** `validate-phase0.template.ts`
 
