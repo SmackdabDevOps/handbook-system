@@ -10,11 +10,17 @@ The handbook-system provides these templates to help projects generate their own
 |----------|---------|-------------|
 | `validate-directory-structure.template.ts` | Directory structure validation | Phase 0: Validate project follows handbook directory standards |
 | `validate-required-docs.template.ts` | Required documentation | Phase 0: Validate minimum required docs exist |
+| `validate-features.template.ts` | FEAT-XXX feature registry | Phase 0: Validate features.md exists and contains FEAT-XXX entries |
 | `validate-phase0-gate.template.ts` | Combined Phase 0 gate | Phase 0: Run all Phase 0 checks as single gate |
 | `validate-phase0.template.ts` | Feature-based requirements | Phase 0 (legacy): Validate user stories, business rules by feature |
 | `validate-phase1.template.ts` | Contract-Code alignment | Phase 1: Validate OpenAPI specs align with DTOs and Controllers |
 | `validate-phase2.template.ts` | Test coverage | Phase 2: Validate unit, contract, and integration test coverage |
 | `validate-feature.template.ts` | Feature behavior testing | Phase 4: Validate actual API behavior against UX specs |
+| **Chain of Trust System** | | |
+| `check-all-phase-gates.template.ts` | Run all phase gates | Run all gates 0-5, block later phases if earlier fail |
+| `check-phase-prerequisites.template.ts` | File prerequisite checking | Block file edits if phase prerequisites not met |
+| `lib/validation-registry.template.ts` | Registry API library | Report validator results, check gates, track regressions |
+| `validation-registry.template.json` | Registry data structure | Initialize validation registry for new projects |
 
 ## Quick Start
 
@@ -119,6 +125,74 @@ const REQUIRED_DOCS = [
     minCount: 1,
   },
 ];
+```
+
+---
+
+### Phase 0: Features Registry (NEW)
+
+**File:** `validate-features.template.ts`
+
+**Validates:**
+- `docs/features.md` exists
+- Contains at least one FEAT-XXX feature definition
+- Provides CLI flags for feature management
+
+**CLI Usage:**
+```bash
+# Basic validation - check file exists and has features
+npx ts-node scripts/validation/validate-features.ts
+
+# List all features with their status
+npx ts-node scripts/validation/validate-features.ts --list
+
+# Show next available FEAT-XXX number
+npx ts-node scripts/validation/validate-features.ts --next
+
+# Check if specific feature exists (exits with code 1 if not found)
+npx ts-node scripts/validation/validate-features.ts --feature FEAT-013
+```
+
+**Customization needed:**
+```typescript
+// CUSTOMIZE: Adjust these paths to match your project structure
+const DOCS_DIR = 'docs';           // Your docs directory
+const FEATURES_FILE = 'features.md'; // Your features file name
+```
+
+**Expected file format:**
+```markdown
+# Features
+
+## FEAT-001: User Authentication
+**Status:** Implemented
+
+Description of the feature...
+
+## FEAT-002: Real-time Messaging
+**Status:** Planned
+
+Description of the feature...
+```
+
+**Exit codes:**
+- `0`: Validation passed
+- `1`: Validation failed (missing file, no features, or feature not found with `--feature` flag)
+
+**Integration with pre-commit hooks:**
+This validator can be used in pre-commit hooks to ensure user stories reference valid FEAT-XXX identifiers:
+
+```typescript
+// In validate-user-stories.ts
+import { execSync } from 'child_process';
+
+// Check if FEAT-013 exists before allowing story creation
+try {
+  execSync('npx ts-node validate-features.ts --feature FEAT-013', { stdio: 'pipe' });
+} catch {
+  console.error('Feature FEAT-013 does not exist in features.md');
+  process.exit(1);
+}
 ```
 
 ---
@@ -481,12 +555,129 @@ Make sure your API is running on the configured base URL. Check `baseUrl` in the
 
 ---
 
+## Chain of Trust Gate System (NEW)
+
+The Chain of Trust system ensures phases are completed in order. Later phases show "pending" or "blocked" when prerequisite phases haven't passed.
+
+### Overview
+
+| Template | Purpose |
+|----------|---------|
+| `check-all-phase-gates.template.ts` | Run all phase gates, block later phases if earlier fail |
+| `check-phase-prerequisites.template.ts` | Check if file can be modified based on phase prerequisites |
+| `lib/validation-registry.template.ts` | Registry API for reporting validator results |
+| `validation-registry.template.json` | Initial registry structure |
+
+### Quick Setup
+
+```bash
+# 1. Create lib directory
+mkdir -p scripts/validation/lib
+
+# 2. Copy templates
+cp check-all-phase-gates.template.ts ../../your-project/scripts/validation/check-all-phase-gates.ts
+cp check-phase-prerequisites.template.ts ../../your-project/scripts/validation/check-phase-prerequisites.ts
+cp lib/validation-registry.template.ts ../../your-project/scripts/validation/lib/validation-registry.ts
+cp validation-registry.template.json ../../your-project/scripts/validation/validation-registry.json
+
+# 3. Customize phase checks in check-all-phase-gates.ts
+# 4. Run
+npx ts-node scripts/validation/check-all-phase-gates.ts
+```
+
+### How "Pending" Status Works
+
+Validators have three states based on registry data:
+
+| `lastRun` | `passed` | Status |
+|-----------|----------|--------|
+| `null` | `null` | **pending** (never run) |
+| timestamp | `true` | pass |
+| timestamp | `false` | fail |
+
+The dashboard collector derives status:
+```typescript
+const status = !hasRun ? 'not_run' : entry.passed ? 'pass' : 'fail';
+```
+
+### Chain of Trust Blocking
+
+Phase 5 is **blocked** if Phase 4 fails:
+
+```typescript
+function runPhase5CoverageChecks(phase4Passed: boolean): PhaseCheckResult {
+  // CRITICAL: Phase 5 cannot pass if Phase 4 failed
+  if (!phase4Passed) {
+    console.log(`  ⚠️  Phase 4 failed - Phase 5 blocked (chain of trust)`);
+    updatePhaseGate('phase5-coverage', false, 'Blocked: Phase 4 must pass first');
+    return {
+      passed: false,
+      error: 'Blocked: Phase 4 must pass first (chain of trust)',
+    };
+  }
+  // ... run actual checks
+}
+```
+
+### File-Based Prerequisites
+
+The `check-phase-prerequisites.ts` script maps files to phases:
+
+```typescript
+const FILE_MAPPINGS = [
+  { pattern: /^docs\/user-stories\/.*\.md$/, phase: 1, description: 'User story' },
+  { pattern: /^openapi\/paths\/.*\.yaml$/, phase: 2, description: 'OpenAPI path' },
+  { pattern: /^src\/.*\/services\/.*\.ts$/, phase: 3, description: 'Service' },
+  // ...
+];
+```
+
+Usage:
+```bash
+# Check if Phase 2 prerequisites are met
+npx ts-node check-phase-prerequisites.ts --phase 2
+
+# Check if a specific file can be modified
+npx ts-node check-phase-prerequisites.ts --file openapi/paths/auth.yaml
+```
+
+### Validation Registry Structure
+
+```json
+{
+  "validators": {
+    "auth": {
+      "lastRun": null,      // null = pending
+      "passed": null,       // null = never run
+      "totalTests": 0,
+      "history": []
+    }
+  },
+  "phaseGates": {
+    "phase1": {
+      "name": "Stories & Business Rules",
+      "lastCheck": null,    // null = pending
+      "passed": null        // null = never checked
+    }
+  }
+}
+```
+
+### Customization Required
+
+1. **Update phase checks** in `check-all-phase-gates.ts` to match your npm scripts
+2. **Update file mappings** in `check-phase-prerequisites.ts` to match your project structure
+3. **Update registry path** in both files if different from `scripts/validation/`
+4. **Add validators** to `phaseGates.phase4.requiredValidators` as you create them
+
+---
+
 ## Next Steps
 
 1. **Copy templates** to your project's `scripts/validation/` directory
 2. **Customize configuration** for your project structure
 3. **Implement feature tests** based on your UX specs
-4. **Set up registry integration** (optional but recommended)
+4. **Set up Chain of Trust gate system** (recommended for phase enforcement)
 5. **Add to CI/CD pipeline** to run validators automatically
 
 For more information, see the [System Delivery Playbook](../../core/SYSTEM_DELIVERY_PLAYBOOK.md).

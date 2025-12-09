@@ -1,0 +1,106 @@
+{
+  "$schema": "./validation-registry.schema.json",
+  "version": "1.0.0",
+  "lastFullRun": null,
+  "discoveryRun": null,
+  "validators": {
+    "example-validator": {
+      "lastRun": null,
+      "passed": null,
+      "totalTests": 0,
+      "passedTests": 0,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "duration": 0,
+      "runBy": null,
+      "gitCommit": null,
+      "history": []
+    }
+  },
+  "stats": {
+    "tdd": {
+      "lastUpdated": null,
+      "unit_tests": {
+        "coverage_percent": 0,
+        "passing": false
+      },
+      "contract_tests": {
+        "total_endpoints": 0,
+        "endpoints_with_tests": 0,
+        "coverage_percent": 0,
+        "passing": false
+      },
+      "integration_tests": {
+        "cross_module_calls": 0,
+        "calls_with_tests": 0,
+        "coverage_percent": -1,
+        "passing": false
+      }
+    }
+  },
+  "regressions": {
+    "active": [],
+    "resolved": []
+  },
+  "phaseValidation": {
+    "phase0": { "validated": false, "timestamp": "", "gitCommit": "" },
+    "phase1": { "validated": false, "timestamp": "", "gitCommit": "" },
+    "phase2": { "validated": false, "timestamp": "", "gitCommit": "" },
+    "phase3": { "validated": false, "timestamp": "", "gitCommit": "" }
+  },
+  "phaseGates": {
+    "phase0": {
+      "name": "Foundation",
+      "requiredChecks": ["directory-structure", "required-docs"],
+      "lastCheck": null,
+      "passed": null
+    },
+    "phase1": {
+      "name": "Stories & Business Rules",
+      "requiredChecks": ["business-rules-coverage"],
+      "lastCheck": null,
+      "passed": null
+    },
+    "phase2": {
+      "name": "Contracts & Registry",
+      "requiredChecks": [
+        "naming-conventions",
+        "openapi-dto",
+        "openapi-bundle",
+        "endpoints-validate"
+      ],
+      "lastCheck": null,
+      "passed": null
+    },
+    "phase3": {
+      "name": "Backend Implementation",
+      "requiredChecks": ["endpoints-validate", "openapi-bundle", "no-planned-endpoints"],
+      "lastCheck": null,
+      "passed": null
+    },
+    "phase4-coverage": {
+      "name": "UX Specs Coverage (GATE)",
+      "requiredChecks": ["story-coverage", "endpoint-coverage"],
+      "description": "Endpoint coverage must be 100%",
+      "lastCheck": null,
+      "passed": null
+    },
+    "phase4": {
+      "requiredValidators": [],
+      "requiredPassRate": 1,
+      "description": "All UX validation scripts must pass"
+    },
+    "phase5-coverage": {
+      "name": "Spec-Script Coverage (GATE)",
+      "requiredChecks": ["spec-script-coverage"],
+      "description": "Every spec must have a validator script",
+      "lastCheck": null,
+      "passed": null
+    },
+    "phase5": {
+      "requiredValidators": [],
+      "requiredPassRate": 1,
+      "description": "All UX validation scripts must pass with logs"
+    }
+  }
+}
